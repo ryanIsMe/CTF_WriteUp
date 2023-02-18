@@ -3,9 +3,10 @@
  
 ### 1. Giftshell
 **Tóm tắt đề :**
+
 1 file giftshell để chạy trên linux 
-**Ý tưởng:
-**
+
+**Ý tưởng:**
 - Đầu tiên mình sài IDA để decompile
 ![](https://i.imgur.com/TBsp4PM.png)
 - Nhận thấy có lỗi buffer overflow do biến `buf` khai báo có 112 byte mà nhập tới 128 byte, cùng với việc đề leak địa chỉ biến `buf` ra ở `printf` thì khá chắc chắn là lỗi return to shellcode
