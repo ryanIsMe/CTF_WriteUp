@@ -48,7 +48,7 @@
 - Khi ta nhập full byte của biến `buf` trong hàm `loveletter` rồi chuyển qua hàm `doubt`, do biến `v1` không khai báo nên sẽ nhận giá trị ở vị trí `rsp+0xC` (stack không clear sau khi thực hiện xong hàm). Ta sẽ lợi dụng điều này để lấy shell.
 - Do EX đã tắt và đây là file ELF 64 bit nên ta sẽ làm theo dạng return2libc 64bit
 ![](https://i.imgur.com/DUobQxU.png)
-- Do đây là dạng cơ bản nên ta chỉ cần tìm gadget của từng phần viết script.
+- Do đây là dạng cơ bản nên ta chỉ cần tìm gadget của từng phần để viết script.
 ![](https://i.imgur.com/4ZQeiY2.png)
 - Kết hợp tất cả thông tin rồi ta sẽ viết được script này
 
