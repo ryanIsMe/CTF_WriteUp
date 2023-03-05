@@ -31,7 +31,7 @@
 ![](https://i.imgur.com/3Nwi2pH.png)
 
 
-- Kế tiếp ta tìm range của `unsigned long int ` cũng như range của số 8 byte không dấu, lên document ở đây đọc thì ta được thông tin như sau : 
+- Kế tiếp ta tìm range của `unsigned long int ` cũng như range của số 8 byte không dấu, lên document đọc thì ta được thông tin như sau : 
 
 ![](https://i.imgur.com/JZJIo3E.png)
 
