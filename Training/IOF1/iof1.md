@@ -17,7 +17,7 @@
 ![](https://i.imgur.com/4DzdGRt.png)
 
 - Đề tạo biến `n` thuộc kiểu `unsigned long int`, sau đó gọi hàm `alloca()` để tạo buffer trên stack kế tiếp gọi hàm `read_str` để ghi vào buffer.
-- Kế tiếp ta `checksec` để tìm hướng giải. Nhận thấy NX enable, PIE và Canary đều tắt do đó bài này minh thấy chỉ có giải bằng ret2libc
+- Kế tiếp ta `checksec` để tìm hướng giải. Nhận thấy NX enable, PIE và Canary đều tắt do đó bài này mình thấy chỉ có giải bằng ret2libc
 
 ![](https://i.imgur.com/5O0tnvD.png)
 
