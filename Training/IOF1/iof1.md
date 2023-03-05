@@ -26,7 +26,7 @@
 
 ![](https://i.imgur.com/H2lG0wy.png)
 
-- Nó argument của nó thuộc kiểu `size_t`, ta google tiếp xem size_t là gì thì biết được nó đại khái đại diện cho kiểu dữ liệu lớn nhất mà máy mình chịu được. Vậy `size_t` là 8 byte đối với máy 64 bit (số không dấu)
+- Argument của nó thuộc kiểu `size_t`, ta google tiếp xem size_t là gì thì biết được nó đại khái đại diện cho kiểu dữ liệu lớn nhất mà máy mình chịu được. Vậy `size_t` là 8 byte đối với máy 64 bit (số không dấu)
 
 ![](https://i.imgur.com/3Nwi2pH.png)
 
