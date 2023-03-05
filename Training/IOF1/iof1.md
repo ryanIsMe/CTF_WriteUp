@@ -11,7 +11,7 @@
 
 **2. Ý tưởng :**
 
-- Đầu tiên ta sài `pwninit` để link với libc đề cho
+- Đầu tiên ta sài `pwninit` để link với `libc` và `linker` đề cho
 - Tiếp theo ta đọc source.
 
 ![](https://i.imgur.com/4DzdGRt.png)
