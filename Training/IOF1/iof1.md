@@ -12,7 +12,7 @@
 **2. Ý tưởng :**
 
 - Đầu tiên ta sài `pwninit` để link với `libc` và `linker` đề cho
-- Tiếp theo ta đọc source.
+- Tiếp theo ta đọc source.f
 
 ![](https://i.imgur.com/4DzdGRt.png)
 
@@ -21,7 +21,7 @@
 
 ![](https://i.imgur.com/5O0tnvD.png)
 
-- Để ret2libc thì hướng duy nhất là phải cho phải overflow `buffer` bằng hàm `read_str`. Hướng duy nhất để thực hiện là phải sài int overflow `n*8 ` ở hàm `alloca`
+- Để ret2libc thì hướng duy nhất là phải cho phải overflow `buffer` bằng hàm `read_str`. Cách duy nhất để thực hiện là phải sài int overflow `n*8 ` ở hàm `alloca`
 - Ta check thử manpage của alloca coi argument của nó nhận range là bao nhiêu để overflow cho đúng
 
 ![](https://i.imgur.com/H2lG0wy.png)
