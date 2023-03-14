@@ -67,7 +67,7 @@ p.interactive()
 
 - Do đó ta cần padding thêm 4 byte trước khi đưa argument. Vậy thứ tự payload sẽ là:  112 byte padding + address của `win` + 4 byte padding + `0xcafef00d` + `0xf00df00d`
 - Script:
-```python=
+```python
 from pwn import *
 
 exe = ELF("vuln")
