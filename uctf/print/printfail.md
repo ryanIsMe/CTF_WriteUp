@@ -11,7 +11,7 @@
 - Do đó ta sẽ lợi dụng fmt để write biến v1 lại là 1 như bình thường để loop tiếp.
 - Ta checksec thì nhận thấy bài này full protections do đó overwrite GOT không khả thi. Do đó ta có hướng overwrite return address của main thành một loạt rop gadgets để lấy shell.
 - Để thực hiện ý tưởng trên thì ta phải leak libc, leak exe để tính base.
-- Tổng kết lại hướng làm của mình : leak libc -> leak exe -> overwite return address main thành pop rdi ret -> overwrite ret
+- Tổng kết lại hướng làm của mình : leak libc -> leak exe -> overwite return address thành rop chain
 
 ![](https://i.imgur.com/E6OGdTP.png)
 
