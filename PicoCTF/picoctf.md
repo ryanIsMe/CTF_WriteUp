@@ -26,7 +26,7 @@
 ![](https://i.imgur.com/OeG97Qy.png)
 
 - Script:
-```python=
+```python
 from pwn import *
 exe = ELF("vuln")
 p= remote("saturn.picoctf.net",62172)
@@ -96,7 +96,7 @@ p.interactive()
 ![](https://i.imgur.com/XnLuZBp.png)
 
 - Rồi viết script để chạy:
-```python=
+```python
 from pwn import *
 exe=ELF("vuln")
 p=remote("saturn.picoctf.net",62515)
@@ -107,7 +107,7 @@ p.interactive()
 - Chạy thử thì ta sẽ bị lỗi xmm1 do `win` có push lên stack làm rsp không chia hết cho 16. Vậy ta chỉ ret vào sau hàm push.
 
 - Final script:
-```python=
+```python
 from pwn import *
 exe=ELF("vuln")
 p=remote("saturn.picoctf.net",62515)
@@ -155,7 +155,7 @@ p.interactive()
 - Ta được offset là 28 và khi đó eax chứa địa chỉ của buffer mình nhập. Vậy thì ta cần kiếm gadget jmp vào eax hoặc call eax. Mình thử thì chạy call eax thì được còn jmp eax thì không.
 
 - Script (shellcode mình chôm trên mạng):
-```python=
+```python
 from pwn import *
 
 p = remote("saturn.picoctf.net",53296)
@@ -227,7 +227,7 @@ p.interactive()
 - Rồi reverse lại thủ công bằng tay tiếp thì ta được flag `picoCTF{Cle4N_uP_M3m0rY_c7f3d997}` 
 
 - Script : 
-```python=
+```python
 from pwn import *
 exe = ELF("vuln")
 p= remote("saturn.picoctf.net",61570)
