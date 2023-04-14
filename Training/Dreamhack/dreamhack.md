@@ -2,7 +2,7 @@
 <summary>memory_leakage </summary>
 	
 - Bài cho ta 1 file source và 1 file binary
-- Đầu tiên mở source lên thì thấy name khai báo 16 byte mà khúc dưới nhập tên đủ 16 byte luôn. Do đó sẽ thiếu byte để encode null terminator => lỗi off by one. Ngoài ra cũng có biến age 4 byte do kiểu int
+- Đầu tiên mở source lên thì thấy `name` khai báo 16 byte mà khúc dưới nhập tên đủ 16 byte luôn. Do đó sẽ thiếu byte để encode null terminator => lỗi off by one. Ngoài ra cũng có biến `age` 4 byte do kiểu int
 	
 ![](https://i.imgur.com/yWNAPgl.png)
 
