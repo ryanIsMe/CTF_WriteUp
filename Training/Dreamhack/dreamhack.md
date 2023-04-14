@@ -1,5 +1,4 @@
 <details>
-<details>
 <summary>memory_leakage </summary>
 	
 - Bài cho ta 1 file source và 1 file binary
@@ -110,7 +109,8 @@ p.sendlineafter(b'> ',b'2')
 p.interactive()
 ```
 </details>
-	
+
+<details>	
 <summary>Welcome </summary>
 	
 - Ta chỉ cần kết nối và lấy flag
