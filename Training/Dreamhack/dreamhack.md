@@ -37,7 +37,7 @@
 - Do đó ở đây mình cần overwrite địa chỉ libc ở chỗ mình tô vàng. Ở đây theo dreamhack thì mình cần overwrite `_rtld_global`. Đây chính là địa chỉ khi chương trình exit sẽ gọi tới.
 ![](https://i.imgur.com/KMu39eS.png)
 
--Tiếp theo mình gdb để tính offset thử.
+- Tiếp theo mình gdb để tính offset thử.
 
 ![](https://i.imgur.com/7j34x4f.png)
 
