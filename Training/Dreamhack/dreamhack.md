@@ -3,6 +3,7 @@
 	
 - Bài cho ta 1 file source và 1 file binary
 - Đầu tiên mở source lên thì thấy name khai báo 16 byte mà khúc dưới nhập tên đủ 16 byte luôn. Do đó sẽ thiếu byte để encode null terminator => lỗi off by one. Ngoài ra cũng có biến age 4 byte do kiểu int
+	
 ![](https://i.imgur.com/yWNAPgl.png)
 
 ![](https://i.imgur.com/FgHs49X.png)
@@ -11,9 +12,9 @@
 
 ![](https://i.imgur.com/V6GQUJp.png)
 
-- Debug thì thấy thứ tự các biến là name -> age -> flag. Do đó ta chỉ cần cho biến age là số nào đó đủ 4 byte nào đó khác byte /x00 là lấy được flag
+- Debug thì thấy thứ tự các biến là name -> age -> flag. Do đó ta chỉ cần cho biến age là số nào đó đủ 4 byte nào đó khác byte `/x00` là lấy được flag
 
-- Tiếp theo kết nối với server. Đầu tiên nhập 3 để load flag. Tiếp theo chọn 1 rồi nhập tên đủ 16 byte, name đủ 4 byte khác byte /x00. Cuối cùng nhập 2 để leak.
+- Tiếp theo kết nối với server. Đầu tiên nhập 3 để load flag. Tiếp theo chọn 1 rồi nhập tên đủ 16 byte, name đủ 4 byte khác byte `/x00`. Cuối cùng nhập 2 để leak.
 
 ![](https://i.imgur.com/ZxSGGMB.png)
 
