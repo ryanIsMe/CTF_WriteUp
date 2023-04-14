@@ -22,8 +22,8 @@
 
 <details>
 <summary>rtld </summary>
+
 - Đề cho ta file source, file libc và file binary
-	
 - Đầu tiên mở file source lên xem thử. Có hàm `get_shell` cho ta shell, ngoài ra hàm `main` leak cho ta libc và cho ta điều khiển dữ liệu của 1 địa chỉ bất kỳ.
 
 ![](https://i.imgur.com/skHYxHk.png)
