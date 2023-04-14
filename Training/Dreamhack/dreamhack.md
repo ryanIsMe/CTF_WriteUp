@@ -82,7 +82,7 @@ p.interactive()
 - Tiếp theo ta `checksec`.
 ![](https://i.imgur.com/pW9sQm7.png)
 
-- Ta thấy PIE disable, mà chương trình mặc định sẽ gọi `SECCOMP_MODE_STRICT`, do đó ta tìm cách overwrite `mode` thành `SECCOMP_MOD`E nào đó mà "nhẹ hơn".
+- Ta thấy PIE disable, mà chương trình mặc định sẽ gọi `SECCOMP_MODE_STRICT`, do đó ta tìm cách overwrite `mode` thành `SECCOMP_MODE` nào đó mà "nhẹ hơn".
 - Đọc doc của linux kernel thì thấy có 2 mode mà ta có thể sài là 0 và 2. 0 tức disable luôn còn 2 là sài cái filter ở trên mình phân tích. Mà cái filter đó không có gì nguy hiểm tới shellcode của mình hết nên mình thích overwrite mode bằng 0 hay 2 là tuỳ. Ở đây mình overwrite thành 2
 
 ![](https://i.imgur.com/in6Xdk3.png)
