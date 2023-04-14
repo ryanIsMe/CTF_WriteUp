@@ -28,11 +28,11 @@
 
 ![](https://i.imgur.com/skHYxHk.png)
 
-- Tiếp theo ta checksec. Ta thấy PIE enable nên hàm `get_shell` coi như phế vì không leak được. Do đó ở đây ta sẽ sài `one_gadget`
+- Tiếp theo ta `checksec`. Ta thấy PIE enable nên hàm `get_shell` coi như phế vì không leak được. Do đó ở đây ta sẽ sài `one_gadget`
 
 ![](https://i.imgur.com/i4KHhC9.png)
 
-- Đề leak cho ta libc vì vậy ta cần overwrite 1 địa chỉ nào đó ở libc mà chương trình có call tới thành `one_gadget`. Đề không leak exe để tính basse nên ở đây khó overwrite `.got.plt`
+- Đề leak cho ta libc vì vậy ta cần overwrite 1 địa chỉ nào đó ở libc mà chương trình có call tới thành `one_gadget`. Đề không leak exe để tính base nên ở đây khó overwrite `.got.plt`
     
 - Do đó ở đây mình cần overwrite địa chỉ libc ở chỗ mình tô vàng. Ở đây theo dreamhack thì mình cần overwrite `_rtld_global`. Đây chính là địa chỉ khi chương trình exit sẽ gọi tới.
 ![](https://i.imgur.com/KMu39eS.png)
