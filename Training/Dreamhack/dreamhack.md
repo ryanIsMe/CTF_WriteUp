@@ -9,7 +9,7 @@
     
 ![](https://i.imgur.com/OVsocPa.png)
 
-- Sau một hồi tìm hiểu, ta nhận thấy ta sẽ sài `openat` thay thế cho `open`, sendfile thay thế cho `read` và `write`. 
+- Sau một hồi tìm hiểu, ta nhận thấy ta sẽ sài `openat` thay thế cho `open`, `sendfile` thay thế cho `read` và `write`. 
 
 - Ta đọc manpage của `openat`. Ta thấy ta cần cung cấp ít nhất 3 arguments.
     
